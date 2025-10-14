@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-kit/log/level"
@@ -66,6 +67,13 @@ func (gcn *Notifier) Notify(ctx context.Context, as ...*types.Alert) (bool, erro
 	}
 
 	ruleURL := receivers.JoinURLPath(gcn.tmpl.ExternalURL.String(), "/alerting/list", l)
+	if gcn.tmpl.OrgID > 0 {
+		u, _ := url.Parse(ruleURL)
+		q := u.Query()
+		q.Set("orgId", strconv.Itoa(gcn.tmpl.OrgID))
+		u.RawQuery = q.Encode()
+		ruleURL = u.String()
+	}
 	if gcn.isURLAbsolute(ruleURL, l) {
 		// Add a button widget (link to Grafana).
 		widgets = append(widgets, buttonWidget{
